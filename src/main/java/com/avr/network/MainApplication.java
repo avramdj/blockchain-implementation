@@ -1,13 +1,13 @@
-package com.nord.blckchn;
+package com.avr.network;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class BlckchnApplication {
+public class MainApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(BlckchnApplication.class, args);
+		SpringApplication.run(MainApplication.class, args);
 	}
 
 }

@@ -1,10 +1,10 @@
-package com.nord.blckchn;
+package com.avr.network;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class BlckchnApplicationTests {
+class MainApplicationTests {
 
 	@Test
 	void contextLoads() {

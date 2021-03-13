@@ -1,12 +1,12 @@
-package Blockchain;
+package com.avr.blocklogic;
 
 public class Transaction {
-    private int id;
+    private long id;
     private String sender;
     private String receiver;
     private double amount;
 
-    public Transaction(int id, String sender, String receiver, double amount) {
+    public Transaction(long id, String sender, String receiver, double amount) {
         this.id = id;
         this.sender = sender;
         this.receiver = receiver;
