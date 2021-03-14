@@ -20,3 +20,6 @@ p2p hard...here's a mock network implementation with a centralized approach. A s
 
 <img src="img/mocknet_ss.png" width="700px">
 <img src="img/mining_ss.png" width="700px">
+
+#### For reference:
+https://bitcoin.org/bitcoin.pdf
