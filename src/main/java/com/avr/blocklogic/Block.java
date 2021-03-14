@@ -97,7 +97,7 @@ public class Block {
         while (!hash.substring(0, difficulty).equals(prefixString)) {
             nonce = abs(random.nextLong());
             hash = computeHash();
-            logger.log(Level.INFO, "Mining :: nonce: " + nonce + " hash: " + hash);
+            logger.log(Level.INFO, "Mining :: nonce: " + nonce + " hash: " + hash + '\n');
         }
         return hash;
     }

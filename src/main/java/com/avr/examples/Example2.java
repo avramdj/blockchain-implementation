@@ -7,9 +7,7 @@ public class Example2 {
     public static void main(String[] args) {
         Blockchain chain = new Blockchain();
         chain.makeBlock(TransactionGenerator.getNextList());
-        chain.makeBlock(TransactionGenerator.getNextList());
-        chain.makeBlock(TransactionGenerator.getNextList());
         assert chain.isValidOrder();
-        System.out.println(chain.size());
+        System.out.println(chain.getLastHash());
     }
 }
