@@ -9,6 +9,7 @@ import com.avr.network.TransactionClient;
 import com.avr.util.AsyncLogger;
 import com.avr.util.ConsoleColor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -36,17 +37,18 @@ public class ExampleConcurrencyMock {
         @Override
         public void run() {
             logger.log(loggingLevel, String.format("Miner %d started%n", id), ConsoleColor.CYAN);
-            Blockchain chain = new Blockchain();
+            Blockchain chain = null;
+            try {
+                chain = Blockchain.loadLedger("serialized/ledger.ser");
+            } catch (IOException | ClassNotFoundException e) {
+                chain = new Blockchain();
+            }
             TransactionClient txClient = CentralTransactionClient.createConnection();
             BlockClient blClient = CentralBlockClient.createConnection();
-            int created = 0;
             List<Transaction> newTx = new ArrayList<>();
-            //while(CentralTransactionClient.hasUsers() || newTx.isEmpty()){
             Signal stopCondition = new Signal(blClient);
             boolean run = true;
             while(run){
-                //System.out.println(CentralTransactionClient.userCount());
-                //System.out.println(newTx.isEmpty());
                 newTx = txClient.getTransactions();
                 if(newTx.isEmpty()) {
                     try {
@@ -62,18 +64,26 @@ public class ExampleConcurrencyMock {
                 Block b = null;
                 try {
                     b = chain.makeBlock(newTx, stopCondition);
-                    created++;
                     txClient.confirmTransactions(newTx);
                     logger.log(loggingLevel,
-                                    "Miner " + id +
+                            "Miner " + id +
                                     " is broadcasting block " + b.getHash() +
-                                    " nonce: " + b.getNonce() +
+                                    " previous: " + b.getPreviousHash() +
+                                    //" nonce: " + b.getNonce() +
+                                    //" transactions left: " + txClient.transactionsOnWait() +
+                                    "\n",
+                            ConsoleColor.GREEN);
+                    logger.log(loggingLevel,
+                                    "nonce: " + b.getNonce() +
+                                    " transactions in block " + b.getTransactionCount() +
                                     " transactions left: " + txClient.transactionsOnWait() +
                                     "\n",
                             ConsoleColor.GREEN);
                     blClient.broadcastBlock(b);
-                } catch (StoppedException e) {
-                    b = stopCondition.pop();
+                } catch (BlockInterrupt e) {
+                    b = e.getBlock();
+                    chain.add(b);
+                    txClient.confirmTransactions(b.getTransactions());
                     logger.log(loggingLevel,
                                     "Miner " + id +
                                     " accepted block " + b.getHash() +
@@ -83,6 +93,17 @@ public class ExampleConcurrencyMock {
             }
             CentralTransactionClient.disconnect(txClient);
             CentralBlockClient.disconnect(blClient);
+            logger.log(
+                    loggingLevel,
+                    String.format(
+                            "Miner %d exited, %d remaining%n",
+                            id, CentralTransactionClient.userCount()),
+                    ConsoleColor.CYAN);
+            try {
+                Blockchain.saveLedger(chain, "serialized/ledger.ser");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -105,7 +126,7 @@ public class ExampleConcurrencyMock {
         public void run() {
             logger.log(loggingLevel, String.format("User %d started%n", id), ConsoleColor.CYAN);
             TransactionClient txClient = CentralTransactionClient.createConnection();
-            for(int i = 0; i < transactionCount; i++){
+            for(int i = 0; true || i < transactionCount; i++){
                 Transaction tx =  TransactionGenerator.getNext();
                 txClient.broadcastTransaction(tx);
                 logger.log(transactionLogging,
@@ -118,13 +139,13 @@ public class ExampleConcurrencyMock {
                     break;
                 }
             }
+            CentralTransactionClient.disconnect(txClient);
             logger.log(
                     loggingLevel,
                     String.format(
                             "User %d exited, %d remaining%n",
                             id, CentralTransactionClient.userCount()),
                     ConsoleColor.CYAN);
-            CentralTransactionClient.disconnect(txClient);
         }
     }
 

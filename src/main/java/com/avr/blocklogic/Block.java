@@ -1,21 +1,26 @@
 package com.avr.blocklogic;
 
+import com.avr.mockservices.TransactionGenerator;
 import com.avr.util.AsyncLogger;
 
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.logging.Level;
 
 import static java.lang.Math.abs;
 
-public class Block {
+public class Block implements Serializable {
     private long id;
     private String hash;
+    private final List<Transaction> transactions;
     private final String previousHash;
-    private final String data;
+    private final String serializedTransactions;
     private final int difficulty;
+    private final int transactionCount;
     private final long timeStamp;
     private long nonce = 0;
 
@@ -32,7 +37,9 @@ public class Block {
                 data.append(t.toString());
             }
         }
-        this.data = data.toString();
+        this.transactions = transactionList;
+        this.serializedTransactions = data.toString();
+        this.transactionCount = transactionList.size();
         this.previousHash = previousHash;
         this.difficulty = difficulty;
         this.timeStamp = TimeServer.time();
@@ -53,7 +60,7 @@ public class Block {
         String dataToHash = previousHash
                 + Long.toString(timeStamp)
                 + Long.toString(nonce)
-                + data;
+                + serializedTransactions;
         MessageDigest digest = null;
         byte[] bytes = null;
         try {
@@ -70,15 +77,14 @@ public class Block {
         return buffer.toString();
     }
 
-    public static Block mineBlock(Block blk, Signal stopCondition) throws StoppedException {
+    public static Block mineBlock(Block blk, Signal stopCondition) throws BlockInterrupt {
         String prefixString = new String(new char[blk.difficulty]).replace('\0', '0');
         while (!blk.hash.substring(0, blk.difficulty).equals(prefixString)) {
-            Block b = stopCondition.poll();
-            if(b != null){
-                if(b.getId() >= blk.getId() /*&& b.verifyBlock()*/){
-                    throw new StoppedException();
-                } else {
-                    stopCondition.pop();
+            Optional<Block> optBlock = stopCondition.poll();
+            if(optBlock.isPresent()){
+                Block interruptBlock = optBlock.get();
+                if(interruptBlock.getId() >= blk.getId() /*&& b.verifyBlock()*/){
+                    throw new BlockInterrupt(interruptBlock);
                 }
             }
             blk.nonce = abs(blk.random.nextLong());
@@ -103,7 +109,7 @@ public class Block {
     }
 
     public static Block genesisBlock(){
-        return new Block(0, null, "0", 1);
+        return new Block(0, TransactionGenerator.getNextList(1), "0", 1);
     }
 
     public boolean verifyTransactions(){
@@ -111,12 +117,20 @@ public class Block {
         return true;
     }
 
+    public int getTransactionCount() {
+        return transactionCount;
+    }
+
+    public List<Transaction> getTransactions() {
+        return transactions;
+    }
+
     @Override
     public String toString() {
         return "Block[" +
                 "hash='" + hash + '\'' +
                 ", previousHash='" + previousHash + '\'' +
-                ", data='" + data + '\'' +
+                ", data='" + serializedTransactions + '\'' +
                 ", timeStamp=" + timeStamp +
                 ", difficulty=" + difficulty +
                 ", nonce=" + nonce +

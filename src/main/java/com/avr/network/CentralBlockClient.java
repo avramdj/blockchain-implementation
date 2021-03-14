@@ -44,11 +44,6 @@ public class CentralBlockClient implements BlockClient {
         if(blkQueue.size() == 0){
             return null;
         }
-        return blkQueue.peek();
-    }
-
-    @Override
-    public synchronized Block pop() {
         return blkQueue.remove();
     }
 

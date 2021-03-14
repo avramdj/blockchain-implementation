@@ -2,11 +2,12 @@ package com.avr.blocklogic;
 
 import com.avr.util.AsyncLogger;
 
+import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 
-public class Blockchain {
+public class Blockchain implements Serializable{
 
     private static final int diffCycleDuration = 2021;
     private static final int initDifficulty = 5;
@@ -38,7 +39,7 @@ public class Blockchain {
         return true;
     }
 
-    public Block makeBlock(List<Transaction> transactions, Signal stopCondition) throws StoppedException {
+    public Block makeBlock(List<Transaction> transactions, Signal stopCondition) throws BlockInterrupt {
         Block b = new Block(size(), transactions, getLastHash(), calcDifficulty());
         b = Block.mineBlock(b, stopCondition);
         blocks.add(b);
@@ -59,8 +60,16 @@ public class Blockchain {
         return blocks.get(blocks.size()-1);
     }
 
-    public void loadLedger() {
-        //TODO
+    public synchronized static Blockchain loadLedger(String filename) throws IOException, ClassNotFoundException {
+        FileInputStream fout = new FileInputStream(filename);
+        ObjectInputStream oos = new ObjectInputStream(fout);
+        return (Blockchain) oos.readObject();
+    }
+
+    public synchronized static void saveLedger(Blockchain bc, String filename) throws IOException {
+        FileOutputStream fout = new FileOutputStream(filename);
+        ObjectOutputStream oos = new ObjectOutputStream(fout);
+        oos.writeObject(bc);
     }
 
     public String getLastHash() {

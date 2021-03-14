@@ -1,6 +1,8 @@
 package com.avr.blocklogic;
 
-public class Transaction {
+import java.io.Serializable;
+
+public class Transaction implements Serializable {
     private long id;
     private String sender;
     private String receiver;

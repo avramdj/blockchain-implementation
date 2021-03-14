@@ -2,6 +2,8 @@ package com.avr.blocklogic;
 
 import com.avr.network.BlockClient;
 
+import java.util.Optional;
+
 public class Signal {
     private BlockClient blockClient;
 
@@ -9,11 +11,7 @@ public class Signal {
         blockClient = bc;
     }
 
-    public Block poll() {
-        return blockClient.getBlock();
-    }
-
-    public Block pop() {
-        return blockClient.pop();
+    public Optional<Block> poll() {
+        return Optional.ofNullable(blockClient.getBlock());
     }
 }
