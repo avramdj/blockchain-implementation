@@ -126,7 +126,7 @@ public class ExampleConcurrencyMock {
         public void run() {
             logger.log(loggingLevel, String.format("User %d started%n", id), ConsoleColor.CYAN);
             TransactionClient txClient = CentralTransactionClient.createConnection();
-            for(int i = 0; true || i < transactionCount; i++){
+            for(int i = 0; i < transactionCount; i++){
                 Transaction tx =  TransactionGenerator.getNext();
                 txClient.broadcastTransaction(tx);
                 logger.log(transactionLogging,
