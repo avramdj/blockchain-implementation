@@ -1,17 +1,18 @@
 package com.avr.blocklogic;
 
+import com.avr.util.AsyncLogger;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Blockchain {
 
     private static final int diffCycleDuration = 2021;
-    private static final int initDifficulty = 4;
+    private static final int initDifficulty = 5;
 
-    private static final Logger logger = Logger.getLogger(Block.class.getName());
-    private static Level miningLogLevel = Level.INFO;
+    private static final AsyncLogger logger = new AsyncLogger(Block.class.getSimpleName());
+    private static final Level miningLogLevel = Level.INFO;
 
     private List<Block> blocks;
 
@@ -31,13 +32,13 @@ public class Blockchain {
             if(b.getPreviousHash() != previousHash){
                 return false;
             }
-            logger.info("Verified " + b.getHash());
+            logger.log(miningLogLevel, "Verified " + b.getHash());
             previousHash = b.getHash();
         }
         return true;
     }
 
-    public Block makeBlock(List<Transaction> transactions, Signal stopCondition) {
+    public Block makeBlock(List<Transaction> transactions, Signal stopCondition) throws StoppedException {
         Block b = new Block(size(), transactions, getLastHash(), calcDifficulty());
         b = Block.mineBlock(b, stopCondition);
         blocks.add(b);

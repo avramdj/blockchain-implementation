@@ -38,7 +38,6 @@ public class CentralTransactionClient implements TransactionClient {
     @Override
     public void broadcastTransaction(Transaction tx) {
         serverBroadcastTransaction(tx, this);
-        //System.out.printf("Broadcasted %dth transaction%n", txCount++);
     }
 
     private static synchronized void serverBroadcastTransaction(Transaction tx, TransactionClient origin){

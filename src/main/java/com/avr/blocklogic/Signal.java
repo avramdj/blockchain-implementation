@@ -14,7 +14,6 @@ public class Signal {
     }
 
     public Block pop() {
-        blockClient.pop();
-        return poll();
+        return blockClient.pop();
     }
 }

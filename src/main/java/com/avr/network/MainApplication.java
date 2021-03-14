@@ -1,4 +1,4 @@
-package com.avr.network;
+/*package com.avr.network;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,4 +10,4 @@ public class MainApplication {
 		SpringApplication.run(MainApplication.class, args);
 	}
 
-}
+}*/

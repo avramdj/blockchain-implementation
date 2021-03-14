@@ -1,10 +1,14 @@
 package com.avr.blocklogic;
 
+import com.avr.util.AsyncLogger;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import static java.lang.Math.abs;
 
 public class Block {
     private long id;
@@ -13,11 +17,12 @@ public class Block {
     private final String data;
     private final int difficulty;
     private final long timeStamp;
-    private int nonce = 0;
+    private long nonce = 0;
 
+    private Random random;
     private boolean STOP_SIGNAL = false;
 
-    private static final Logger logger = Logger.getLogger(Block.class.getName());
+    private static final AsyncLogger logger = new AsyncLogger(Block.class.getSimpleName());
     private static Level miningLogLevel = Level.FINE;
 
     public Block(long id, List<Transaction> transactionList, String previousHash, int difficulty) {
@@ -33,6 +38,7 @@ public class Block {
         this.timeStamp = TimeServer.time();
         this.hash = computeHash();
         this.id = id;
+        this.random = new Random();
     }
 
     public String getHash() {
@@ -46,7 +52,7 @@ public class Block {
     private String computeHash() {
         String dataToHash = previousHash
                 + Long.toString(timeStamp)
-                + Integer.toString(nonce)
+                + Long.toString(nonce)
                 + data;
         MessageDigest digest = null;
         byte[] bytes = null;
@@ -64,18 +70,18 @@ public class Block {
         return buffer.toString();
     }
 
-    public static Block mineBlock(Block blk, Signal stopCondition) {
+    public static Block mineBlock(Block blk, Signal stopCondition) throws StoppedException {
         String prefixString = new String(new char[blk.difficulty]).replace('\0', '0');
         while (!blk.hash.substring(0, blk.difficulty).equals(prefixString)) {
             Block b = stopCondition.poll();
             if(b != null){
                 if(b.getId() >= blk.getId() /*&& b.verifyBlock()*/){
-                    return b;
+                    throw new StoppedException();
                 } else {
                     stopCondition.pop();
                 }
             }
-            blk.nonce++;
+            blk.nonce = abs(blk.random.nextLong());
             blk.hash = blk.computeHash();
             logger.log(miningLogLevel, "Mining :: nonce: " + blk.nonce + " hash: " + blk.hash);
         }
@@ -89,7 +95,7 @@ public class Block {
     public String mineBlock() {
         String prefixString = new String(new char[difficulty]).replace('\0', '0');
         while (!hash.substring(0, difficulty).equals(prefixString)) {
-            nonce++;
+            nonce = abs(random.nextLong());
             hash = computeHash();
             logger.log(Level.INFO, "Mining :: nonce: " + nonce + " hash: " + hash);
         }
@@ -117,7 +123,7 @@ public class Block {
                 ']';
     }
 
-    public Object getNonce() {
+    public Long getNonce() {
         return nonce;
     }
 }
