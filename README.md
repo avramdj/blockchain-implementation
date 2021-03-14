@@ -16,5 +16,7 @@ p2p hard...here's a mock network implementation with a centralized approach. Ran
 
 * `mvn exec:java`
 
+#### Screenshots:
+
 <img src="img/mocknet_ss.png" width="700px">
 <img src="img/mining_ss.png" width="700px">
