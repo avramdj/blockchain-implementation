@@ -2,26 +2,32 @@ package com.avr.blocklogic;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Blockchain {
 
-    private static final Logger logger = Logger.getLogger(Block.class.getName());
+    private static final int diffCycleDuration = 2021;
+    private static final int initDifficulty = 4;
 
-    private List<Block> chain;
+    private static final Logger logger = Logger.getLogger(Block.class.getName());
+    private static Level miningLogLevel = Level.INFO;
+
+    private List<Block> blocks;
 
     public Blockchain() {
-        chain = new LinkedList<>();
+        blocks = new LinkedList<>();
+        blocks.add(Block.genesisBlock());
     }
 
     public void add(Block b){
-        chain.add(b);
+        blocks.add(b);
     }
 
     public boolean isValidOrder(){
-        if(chain.size() == 0) { return true; }
-        String previousHash = chain.get(0).getPreviousHash();
-        for(Block b : chain){
+        if(blocks.size() == 0) { return true; }
+        String previousHash = blocks.get(0).getPreviousHash();
+        for(Block b : blocks){
             if(b.getPreviousHash() != previousHash){
                 return false;
             }
@@ -31,8 +37,25 @@ public class Blockchain {
         return true;
     }
 
+    public Block makeBlock(List<Transaction> transactions, Signal stopCondition) {
+        Block b = new Block(size(), transactions, getLastHash(), calcDifficulty());
+        b = Block.mineBlock(b, stopCondition);
+        blocks.add(b);
+        return b;
+    }
+
+    public void makeBlock(List<Transaction> transactions) {
+        Block b = new Block(size(), transactions, getLastHash(), calcDifficulty());
+        b.mineBlock();
+        blocks.add(b);
+    }
+
+    private int calcDifficulty(){
+        return (int) (size()/diffCycleDuration) + initDifficulty;
+    }
+
     public Block getLast(){
-        return chain.get(chain.size()-1);
+        return blocks.get(blocks.size()-1);
     }
 
     public void loadLedger() {
@@ -41,5 +64,16 @@ public class Blockchain {
 
     public String getLastHash() {
         return getLast().getHash();
+    }
+
+    public long size(){
+        return blocks.size();
+    }
+
+    @Override
+    public String toString() {
+        return "Blockchain[[" +
+                "Blocks=" + blocks +
+                "]]";
     }
 }

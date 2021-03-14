@@ -1,4 +1,4 @@
-package com.avr.mock;
+package com.avr.blocklogic;
 
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;

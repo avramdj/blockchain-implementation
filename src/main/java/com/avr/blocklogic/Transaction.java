@@ -4,9 +4,9 @@ public class Transaction {
     private long id;
     private String sender;
     private String receiver;
-    private double amount;
+    private long amount;
 
-    public Transaction(long id, String sender, String receiver, double amount) {
+    public Transaction(long id, String sender, String receiver, long amount) {
         this.id = id;
         this.sender = sender;
         this.receiver = receiver;
