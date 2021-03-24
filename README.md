@@ -2,7 +2,7 @@
 
 A distributed blockchain based transaction system from scratch. Work in progress.
 
-p2p hard...here's a mock network implementation with a centralized approach. A simulation ran on a single machine across multiple threads.
+p2p is hard...here's a mock network implementation with a centralized approach. A simulation ran on a single machine across multiple threads.
 
 #### Requirements:
 
