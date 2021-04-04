@@ -5,7 +5,10 @@ import com.avr.util.AsyncLogger;
 import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
+
+import static java.lang.Math.abs;
 
 public class Blockchain implements Serializable{
 
@@ -14,6 +17,7 @@ public class Blockchain implements Serializable{
 
     private static final AsyncLogger logger = new AsyncLogger(Block.class.getSimpleName());
     private static final Level miningLogLevel = Level.INFO;
+    private Signal stopCondition;
 
     private List<Block> blocks;
 
@@ -40,10 +44,22 @@ public class Blockchain implements Serializable{
     }
 
     public Block makeBlock(List<Transaction> transactions, Signal stopCondition) throws BlockInterrupt {
-        Block b = new Block(size(), transactions, getLastHash(), calcDifficulty());
-        b = Block.mineBlock(b, stopCondition);
-        blocks.add(b);
-        return b;
+        Block blk = new Block(size(), transactions, getLastHash());
+        int difficulty = calcDifficulty();
+        String prefixString = new String(new char[difficulty]).replace('\0', '0');
+        while (!blk.getHash().substring(0, difficulty).equals(prefixString)) {
+            Optional<Block> optBlock = stopCondition.poll();
+            if(optBlock.isPresent()){
+                Block interruptBlock = optBlock.get();
+                if(interruptBlock.getId() >= blk.getId() /*&& b.verifyBlock()*/){
+                    throw new BlockInterrupt(interruptBlock);
+                }
+            }
+            blk.nextHash();
+            //logger.log(miningLogLevel, "Mining :: nonce: " + blk.getNonce() + " hash: " + blk.getHash());
+        }
+        blocks.add(blk);
+        return blk;
     }
 
     public void makeBlock(List<Transaction> transactions) {
@@ -70,6 +86,10 @@ public class Blockchain implements Serializable{
         FileOutputStream fout = new FileOutputStream(filename);
         ObjectOutputStream oos = new ObjectOutputStream(fout);
         oos.writeObject(bc);
+    }
+
+    public void setStopCondition(Signal stopCondition) {
+        this.stopCondition = stopCondition;
     }
 
     public String getLastHash() {

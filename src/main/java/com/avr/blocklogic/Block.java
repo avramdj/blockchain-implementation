@@ -48,6 +48,25 @@ public class Block implements Serializable {
         this.random = new Random();
     }
 
+    public Block(long id, List<Transaction> transactionList, String previousHash) {
+        StringBuilder data = new StringBuilder();
+        if(transactionList != null){
+            for(Transaction t : transactionList){
+                data.append(t.toString());
+            }
+        }
+        this.transactions = transactionList;
+        this.serializedTransactions = data.toString();
+        this.transactionCount = transactionList.size();
+        this.previousHash = previousHash;
+        this.difficulty = 0;
+        this.timeStamp = TimeServer.time();
+        this.hash = computeHash();
+        this.id = id;
+        this.random = new Random();
+    }
+
+
     public String getHash() {
         return hash;
     }
@@ -77,7 +96,13 @@ public class Block implements Serializable {
         return buffer.toString();
     }
 
-    public static Block mineBlock(Block blk, Signal stopCondition) throws BlockInterrupt {
+    public String nextHash() {
+        nextNonce();
+        this.hash = computeHash();
+        return this.hash;
+    }
+
+    private static Block mineBlock(Block blk, Signal stopCondition) throws BlockInterrupt {
         String prefixString = new String(new char[blk.difficulty]).replace('\0', '0');
         while (!blk.hash.substring(0, blk.difficulty).equals(prefixString)) {
             Optional<Block> optBlock = stopCondition.poll();
@@ -94,7 +119,7 @@ public class Block implements Serializable {
         return blk;
     }
 
-    private long getId() {
+    public long getId() {
         return id;
     }
 
@@ -123,6 +148,11 @@ public class Block implements Serializable {
 
     public List<Transaction> getTransactions() {
         return transactions;
+    }
+
+    private long nextNonce() {
+        this.nonce = abs(random.nextLong());
+        return this.nonce;
     }
 
     @Override
